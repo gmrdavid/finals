@@ -1,0 +1,17 @@
+{
+  "name": "cardo-dalisay-final-exam",
+  "version": "1.0.0",
+  "description": "Student Information Management System - IT318 Final Exam",
+  "main": "crud_final_exam.js",
+  "scripts": {
+    "start": "node crud_final_exam.js",
+    "dev": "nodemon crud_final_exam.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
