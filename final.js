@@ -44,7 +44,7 @@ async function initializeDatabase() {
     const connection = await pool.getConnection();
     
     // Create database if not exists
-    await connection.execute('CREATE DATABASE IF NOT EXISTS student_db');
+    await connection.execute('CREATE DATABASE IF NOT EXISTS crud');
     await connection.execute('USE student_db');
     
     // Create students table
