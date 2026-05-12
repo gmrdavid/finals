@@ -189,7 +189,7 @@ app.get('/add', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'add.html'));
 });
 
-app.get('/edit/:id', (req, res) => {
+app.get('/edit', (req, res) => {  // ✅ Query params handled by static middleware
   res.sendFile(path.join(__dirname, 'public', 'edit.html'));
 });
 
