@@ -2,10 +2,10 @@
   "name": "student-crud-app",
   "version": "1.0.0",
   "description": "Student Management System",
-  "main": "final.js",
+  "main": "crud_final_exam.js",
   "scripts": {
-    "start": "node final.js",
-    "dev": "nodemon final.js"
+    "start": "node crud_final_exam.js",
+    "dev": "nodemon crud_final_exam.js"
   },
   "dependencies": {
     "express": "^4.18.2",
