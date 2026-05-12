@@ -5,37 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Management System - IT318 Final Exam</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar">
-        <h1>🎓 Student Information System</h1>
-        <div class="nav-links">
-            <a href="/" class="nav-link active">Home</a>
-            <a href="/add" class="nav-link">Add Student</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <h2>All Students</h2>
-        <div id="students-container">
-            <p>Loading students...</p>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-graduation-cap fa-spin"></i>
+            <p>Loading Student Records...</p>
         </div>
     </div>
 
-    <script>
-        // Load students on page load
-        document.addEventListener('DOMContentLoaded', loadStudents);
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-university"></i>
+            <h1>Student Management System</h1>
+        </div>
+        <div class="nav-stats">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <span id="student-count">0</span>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link active" data-page="home">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="/add" class="nav-link" data-page="add">
+                <i class="fas fa-plus-circle"></i> Add Student
+            </a>
+        </div>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
 
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Manage Your Students</h1>
+            <p class="hero-subtitle">Complete CRUD operations with cloud database integration</p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <i class="fas fa-database"></i>
+                    <span>Aiven MySQL Cloud</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-cloud"></i>
+                    <span>Render Deployment</span>
+                </div>
+                <div class="stat">
+                    <i class="fab fa-github"></i>
+                    <span>GitHub Version Control</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Search & Filter -->
+        <div class="search-filter">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search students by name, ID, or course...">
+            </div>
+            <button class="btn-refresh" onclick="loadStudents()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card large">
+                <i class="fas fa-users"></i>
+                <span id="totalStudents">0</span>
+                <small>Total Students</small>
+            </div>
+            <div class="stat-card large">
+                <i class="fas fa-chart-line"></i>
+                <span id="recentCount">0</span>
+                <small>Recent Additions</small>
+            </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="students-section">
+            <div class="section-header">
+                <h2><i class="fas fa-list"></i> Student Records</h2>
+                <a href="/add" class="btn-primary">
+                    <i class="fas fa-plus"></i> Add New Student
+                </a>
+            </div>
+            <div id="students-container">
+                <div class="empty-state">
+                    <i class="fas fa-users-slash fa-3x"></i>
+                    <h3>No students found</h3>
+                    <p>Start by adding your first student record</p>
+                    <a href="/add" class="btn-primary">Add First Student</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // Enhanced State Management
+        let allStudents = [];
+        let filteredStudents = [];
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStudents();
+            setupEventListeners();
+            hideLoading();
+        });
+
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', debounce(filterStudents, 300));
+            
+            // Navbar mobile toggle
+            document.getElementById('hamburger').addEventListener('click', toggleMobileMenu);
+            
+            // Window resize
+            window.addEventListener('resize', closeMobileMenu);
+        }
+
+        // Load students with enhanced error handling
         async function loadStudents() {
+            showLoading();
+            
             try {
                 const response = await fetch('/api/students');
-                const students = await response.json();
                 
-                displayStudents(students);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                allStudents = await response.json();
+                filteredStudents = [...allStudents];
+                
+                displayStudents(filteredStudents);
+                updateStats(allStudents);
+                showToast('Student records loaded successfully!', 'success');
+                
             } catch (error) {
                 console.error('Error loading students:', error);
-                document.getElementById('students-container').innerHTML = 
-                    '<p class="error">Failed to load students. Please try again.</p>';
+                showErrorState('Failed to load students. Please check your database connection.');
+                showToast('Failed to load students. Please refresh.', 'error');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -43,60 +169,207 @@
             const container = document.getElementById('students-container');
             
             if (students.length === 0) {
-                container.innerHTML = '<p>No students found. <a href="/add">Add the first student</a></p>';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users-slash fa-3x"></i>
+                        <h3>No students match your search</h3>
+                        <p>Try adjusting your search terms or add new students</p>
+                        <a href="/add" class="btn-primary">Add New Student</a>
+                    </div>
+                `;
                 return;
             }
 
             container.innerHTML = `
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Full Name</th>
-                                <th>Course</th>
-                                <th>Year</th>
-                                <th>Email</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${students.map(student => `
+                <div class="table-wrapper">
+                    <div class="table-header">
+                        <span>Showing ${students.length} of ${allStudents.length} students</span>
+                        <div class="table-actions">
+                            <button class="btn-icon" onclick="exportToCSV()">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn-icon" onclick="printTable()">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
                                 <tr>
-                                    <td>${student.student_id}</td>
-                                    <td>${student.full_name}</td>
-                                    <td>${student.course}</td>
-                                    <td>${student.year_level}</td>
-                                    <td>${student.email}</td>
-                                    <td>
-                                        <a href="/edit/${student.id}" class="btn-edit">Edit</a>
-                                        <button onclick="deleteStudent(${student.id})" class="btn-delete">Delete</button>
-                                    </td>
+                                    <th><i class="fas fa-id-card"></i> Student ID</th>
+                                    <th><i class="fas fa-user"></i> Full Name</th>
+                                    <th><i class="fas fa-book"></i> Course</th>
+                                    <th><i class="fas fa-calendar"></i> Year</th>
+                                    <th><i class="fas fa-envelope"></i> Email</th>
+                                    <th><i class="fas fa-cog"></i> Actions</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${students.map((student, index) => createStudentRow(student, index)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             `;
         }
 
+        function createStudentRow(student, index) {
+            const yearBadges = {
+                1: 'badge-freshman', 2: 'badge-sophomore',
+                3: 'badge-junior', 4: 'badge-senior', 5: 'badge-graduate'
+            };
+            
+            return `
+                <tr class="student-row" data-student-id="${student.id}">
+                    <td class="id-cell">${student.student_id}</td>
+                    <td class="name-cell">
+                        <div class="student-avatar">${getInitials(student.full_name)}</div>
+                        <span>${student.full_name}</span>
+                    </td>
+                    <td class="course-cell">${student.course}</td>
+                    <td class="year-cell">
+                        <span class="year-badge ${yearBadges[student.year_level] || ''}">
+                            Year ${student.year_level}
+                        </span>
+                    </td>
+                    <td class="email-cell">
+                        <i class="fas fa-envelope"></i>
+                        ${student.email}
+                    </td>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <a href="/edit/${student.id}" class="btn-edit" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button onclick="deleteStudent(${student.id})" class="btn-delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="viewStudent(${student.id})" class="btn-view" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        function updateStats(students) {
+            document.getElementById('student-count').textContent = students.length;
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('recentCount').textContent = students.slice(0, 5).length;
+        }
+
+        // Enhanced Delete with Animation
         async function deleteStudent(id) {
-            if (!confirm('Are you sure you want to delete this student?')) return;
+            const studentRow = document.querySelector(`[data-student-id="${id}"]`);
+            
+            if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) return;
             
             try {
-                const response = await fetch(`/api/students/${id}`, {
-                    method: 'DELETE'
-                });
+                studentRow.style.transition = 'all 0.3s ease';
+                studentRow.style.opacity = '0.5';
+                studentRow.style.transform = 'translateX(-20px)';
+                
+                const response = await fetch(`/api/students/${id}`, { method: 'DELETE' });
                 
                 if (response.ok) {
-                    loadStudents(); // Reload the list
+                    showToast('Student deleted successfully!', 'success');
+                    loadStudents();
                 } else {
-                    alert('Failed to delete student');
+                    throw new Error('Delete failed');
                 }
             } catch (error) {
-                console.error('Error deleting student:', error);
-                alert('Failed to delete student');
+                console.error('Delete error:', error);
+                studentRow.style.opacity = '1';
+                studentRow.style.transform = 'translateX(0)';
+                showToast('Failed to delete student', 'error');
             }
+        }
+
+        // Search & Filter
+        function filterStudents() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            filteredStudents = allStudents.filter(student =>
+                student.student_id.toLowerCase().includes(query) ||
+                student.full_name.toLowerCase().includes(query) ||
+                student.course.toLowerCase().includes(query) ||
+                student.email.toLowerCase().includes(query)
+            );
+            displayStudents(filteredStudents);
+        }
+
+        // Utility Functions
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        function showErrorState(message) {
+            document.getElementById('students-container').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    <h3>Oops! Something went wrong</h3>
+                    <p>${message}</p>
+                    <button class="btn-primary" onclick="loadStudents()">Retry</button>
+                </div>
+            `;
+        }
+
+        // Mobile Menu
+        function toggleMobileMenu() {
+            document.querySelector('.navbar').classList.toggle('mobile-open');
+        }
+
+        function closeMobileMenu() {
+            document.querySelector('.navbar').classList.remove('mobile-open');
+        }
+
+        // Export & Print
+        function exportToCSV() {
+            const csv = [
+                ['Student ID', 'Name', 'Course', 'Year', 'Email'],
+                ...allStudents.map(s => [s.student_id, s.full_name, s.course, s.year_level, s.email])
+            ].map(row => row.join(',')).join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'students.csv';
+            a.click();
+        }
+
+        function printTable() {
+            window.print();
         }
     </script>
 </body>
