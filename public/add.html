@@ -4,78 +4,434 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Student - IT318 Final Exam</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .navbar h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0;
+            list-style: none;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            color: #666666;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #000000;
+            background: #f8f9fa;
+            border-color: #e5e5e5;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .container h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Form */
+        .form-container {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: #ffffff;
+            color: #000000;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+        }
+
+        .form-group input::placeholder {
+            color: #999999;
+        }
+
+        /* Buttons */
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-submit {
+            flex: 1;
+            min-width: 160px;
+            padding: 1rem 2rem;
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #333333;
+        }
+
+        .btn-submit:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            display: inline-flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: transparent;
+            color: #666666;
+            text-decoration: none;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #f8f9fa;
+            border-color: #000000;
+            color: #000000;
+        }
+
+        /* Form States */
+        .form-container.success {
+            border-color: #000000;
+            background: #f8f9fa;
+        }
+
+        .form-container.error {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .container {
+                margin: 2rem 1rem;
+                padding: 0 1rem;
+            }
+
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .container h2 {
+                font-size: 1.75rem;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+            }
+
+            .btn-submit,
+            .btn-cancel {
+                width: 100%;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
-        <h1>🎓 Student Information System</h1>
+        <h1>
+            <i class="fas fa-university"></i>
+            Student Management System
+        </h1>
         <div class="nav-links">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/add" class="nav-link active">Add Student</a>
+            <a href="/" class="nav-link">
+                <i class="fas fa-home"></i>
+                Home
+            </a>
+            <a href="/add" class="nav-link active">
+                <i class="fas fa-plus-circle"></i>
+                Add Student
+            </a>
         </div>
     </nav>
 
     <div class="container">
-        <h2>Add New Student</h2>
+        <h2>
+            <i class="fas fa-user-plus"></i>
+            Add New Student
+        </h2>
+        
         <form id="studentForm" class="form-container">
             <div class="form-group">
-                <label for="student_id">Student ID *</label>
-                <input type="text" id="student_id" name="student_id" required maxlength="20">
+                <label for="student_id">Student ID <span style="color: #dc3545;">*</span></label>
+                <input 
+                    type="text" 
+                    id="student_id" 
+                    name="student_id" 
+                    required 
+                    maxlength="20"
+                    placeholder="e.g., 2024001"
+                >
             </div>
+            
             <div class="form-group">
-                <label for="full_name">Full Name *</label>
-                <input type="text" id="full_name" name="full_name" required>
+                <label for="full_name">Full Name <span style="color: #dc3545;">*</span></label>
+                <input 
+                    type="text" 
+                    id="full_name" 
+                    name="full_name" 
+                    required
+                    placeholder="e.g., John Doe"
+                >
             </div>
+            
             <div class="form-group">
-                <label for="course">Course *</label>
-                <input type="text" id="course" name="course" required>
+                <label for="course">Course <span style="color: #dc3545;">*</span></label>
+                <input 
+                    type="text" 
+                    id="course" 
+                    name="course" 
+                    required
+                    placeholder="e.g., Computer Science"
+                >
             </div>
+            
             <div class="form-group">
-                <label for="year_level">Year Level *</label>
+                <label for="year_level">Year Level <span style="color: #dc3545;">*</span></label>
                 <select id="year_level" name="year_level" required>
-                    <option value="">Select Year</option>
+                    <option value="">Select Year Level</option>
                     <option value="1">1st Year</option>
                     <option value="2">2nd Year</option>
                     <option value="3">3rd Year</option>
                     <option value="4">4th Year</option>
-                    <option value="5">5th Year</option>
+                    <option value="5">5th Year / Graduate</option>
                 </select>
             </div>
+            
             <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required>
+                <label for="email">Email Address <span style="color: #dc3545;">*</span></label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required
+                    placeholder="e.g., john.doe@university.edu"
+                >
             </div>
-            <button type="submit" class="btn-submit">Add Student</button>
-            <a href="/" class="btn-cancel">Cancel</a>
+            
+            <div class="form-buttons">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span id="submitText">Add Student</span>
+                    <span id="loadingSpinner" class="loading" style="display: none;"></span>
+                </button>
+                <a href="/" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </a>
+            </div>
         </form>
     </div>
 
     <script>
-        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+        const form = document.getElementById('studentForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const formData = new FormData(e.target);
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-block';
+            submitBtn.textContent = 'Adding Student...';
+            
+            const formData = new FormData(form);
             const data = Object.fromEntries(formData);
             
             try {
                 const response = await fetch('/api/students', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(data)
                 });
                 
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert(result.message);
-                    window.location.href = '/';
+                    // Success styling
+                    form.classList.add('success');
+                    form.classList.remove('error');
+                    
+                    // Show success message and redirect after 1.5s
+                    submitText.textContent = 'Student Added Successfully!';
+                    submitBtn.style.background = '#28a745';
+                    submitBtn.disabled = true;
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                    
                 } else {
-                    alert('Error: ' + result.error);
+                    throw new Error(result.error || 'Failed to add student');
                 }
             } catch (error) {
                 console.error('Error adding student:', error);
-                alert('Failed to add student. Please try again.');
+                
+                // Error styling
+                form.classList.add('error');
+                form.classList.remove('success');
+                
+                alert('Error: ' + (error.message || 'Failed to add student. Please try again.'));
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                submitText.textContent = 'Add Student';
+                submitBtn.style.background = '#000000';
             }
+        });
+
+        // Real-time form validation feedback
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', () => {
+                if (input.checkValidity()) {
+                    input.parentElement.style.border = '1px solid #e5e5e5';
+                } else {
+                    input.parentElement.style.border = '1px solid #dc3545';
+                }
+            });
+        });
+
+        // Auto-clear error styling on input
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                input.parentElement.style.border = '1px solid #e5e5e5';
+            });
         });
     </script>
 </body>
