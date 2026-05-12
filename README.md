@@ -2,7 +2,7 @@
 **IT318 Web Development Final Practical Examination**
 
 ## 🚀 Live Deployment
-[![Deployed on Render](https://img.shields.io/badge/Deployed-Render-brightgreen)](YOUR_RENDER_URL_HERE)
+[![Deployed on Render]
 
 ## 📋 Features
 ✅ **Complete CRUD Operations** (Create, Read, Update, Delete)  
